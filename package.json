@@ -7,7 +7,9 @@
     "dev": "nodemon src/server-local.js",
     "start": "node src/server-local.js"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
