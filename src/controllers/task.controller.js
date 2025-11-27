@@ -40,40 +40,52 @@ export async function update(req, res) {
 }
 
 export async function remove(req, res) {
-    const {id} = req.params;
+    const {id} = req.params;
 
-    const task = await Task.findByIdAndUpdate(
-        {_id:id, user:req.userId},
-        {deleted:true},
-        {new:true}
-    );
-    if(!task) return res.status(404).json({message: 'Tarea no encontrada'});
-    res.json({ok: true});
+    // Usar findOneAndUpdate para aplicar ambos filtros (_id y user)
+    const task = await Task.findOneAndUpdate(
+        {_id:id, user:req.userId}, // Filtro
+        {deleted:true}, // Actualización
+        {new:true} // Opciones
+    );
+    if(!task) return res.status(404).json({message: 'Tarea no encontrada'});
+    res.json({ok: true});
 }
 
 //ENDPOINT PARA SINCRONIZACION OFFLINE: CREAR/ ACTUALIZAR POR CLIENTE Y DEVOLVER EL MAPEO
 export async function bulksync(req, res) {
-    const {tasks} = req.body;
+    const { tasks } = req.body;
     const mapping = [];
 
-    for(const item of tasks){
-        if (!tasks.clienteId || !tasks.title) continue;
+    for (const item of tasks) {
+        // 1. Desestructurar item (o usar item.propiedad directamente)
+        const { clienteId, title, description = '', status = 'Pendiente' } = item;
 
-        let doc = await Task.findOne({ user: req.userId, clienteId: tasks.clienteId });
-        if (!doc){
+        // 2. Usar clienteId y title para la validación
+        if (!clienteId || !title) continue; 
+
+        // 3. Buscar usando item.clienteId
+        let doc = await Task.findOne({ user: req.userId, clienteId: clienteId }); 
+        
+        if (!doc) {
+            // 4. Crear usando las variables desestructuradas
             doc = await Task.create({
                 user: req.userId,
                 title,
                 description,
                 status: allwed.includes(status) ? status : 'Pendiente',
-                clienteId
+                clienteId // Guardamos el clienteId para futuras referencias
             });
-        }else{
-            doc.title = t.title ?? doc.title;
-            doc.description = t.description ?? doc.description;
-            if(t.status && allwed.includes(t.status)) doc.status = t.status;
+        } else {
+            // 5. Actualizar si existe, usando las variables desestructuradas
+            doc.title = title ?? doc.title;
+            doc.description = description ?? doc.description;
+            if (status && allwed.includes(status)) doc.status = status;
+            await doc.save();
         }
-        mapping.push ({clienteId: t.clienteId, serverId: String(doc._id)});
+        
+        // 6. Push al mapeo
+        mapping.push({ clienteId: clienteId, serverId: String(doc._id) });
     }
-    res.json({mapping});
+    res.json({ mapping });
 }
