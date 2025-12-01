@@ -12,15 +12,17 @@ import { connectToDB } from "./db/connect.js";
 
 const app = express();
 
+// CORS
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      process.env.FRONT_ORIGIN || ""
-    ].filter(Boolean),
+      "https://todo-pwa-front-proyecto.vercel.app"
+    ],
     credentials: true
   })
 );
+app.options("*", cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
@@ -30,6 +32,7 @@ app.use(async (_req, _res, next) => {
 });
 
 app.get("/", (_req, res) => res.json({ ok: true, name: "condominios-api" }));
+
 app.use("/api/auth", authRoutes);
 app.use("/api/anuncios", anuncioRoutes);
 app.use("/api/reservaciones", reservacionRoutes);
