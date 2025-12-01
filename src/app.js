@@ -2,8 +2,11 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import taskRoutes from "./routes/task.routes.js";
 import authRoutes from "./routes/auth.routes.js";
+import anuncioRoutes from "./routes/anuncio.routes.js";
+import reservacionRoutes from "./routes/reservacion.routes.js";
+import pagoRoutes from "./routes/pago.routes.js";
+import visitanteRoutes from "./routes/visitante.routes.js";
 import { connectToDB } from "./db/connect.js";
 
 const app = express();
@@ -25,8 +28,11 @@ app.use(async (_req, _res, next) => {
   try { await connectToDB(); next(); } catch (e) { next(e); }
 });
 
-app.get("/", (_req, res) => res.json({ ok: true, name: "todo-pwa-api" }));
-app.use("/api/tasks", taskRoutes);
+app.get("/", (_req, res) => res.json({ ok: true, name: "condominios-api" }));
 app.use("/api/auth", authRoutes);
+app.use("/api/anuncios", anuncioRoutes);
+app.use("/api/reservaciones", reservacionRoutes);
+app.use("/api/pagos", pagoRoutes);
+app.use("/api/visitantes", visitanteRoutes);
 
 export default app;
