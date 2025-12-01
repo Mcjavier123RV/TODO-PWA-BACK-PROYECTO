@@ -12,24 +12,22 @@ import { connectToDB } from "./db/connect.js";
 
 const app = express();
 
-// CORS
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      "https://todo-pwa-front-proyecto.vercel.app"
-    ],
-    credentials: true
-  })
-);
+// 👉 Conectar solo una vez
+connectToDB()
+  .then(() => console.log("MongoDB conectado"))
+  .catch(err => console.error("Error al conectar MongoDB", err));
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://todo-pwa-front-proyecto.vercel.app"
+  ],
+  credentials: true
+}));
+
 app.options("*", cors());
 app.use(express.json());
 app.use(morgan("dev"));
-
-// Conexión a Mongo cacheada por request (seguro en serverless)
-app.use(async (_req, _res, next) => {
-  try { await connectToDB(); next(); } catch (e) { next(e); }
-});
 
 app.get("/", (_req, res) => res.json({ ok: true, name: "condominios-api" }));
 
