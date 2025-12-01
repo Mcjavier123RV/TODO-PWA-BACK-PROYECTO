@@ -2,7 +2,60 @@ import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+// ---------------------------------------
+// 🟩 CREAR PRIMER ADMIN (solo temporal)
+// ---------------------------------------
+export async function createFirstAdmin(req, res) {
+    try {
+        const { name, email, password } = req.body;
+
+        if (!name || !email || !password)
+            return res.status(400).json({ message: "Nombre, email y contraseña son requeridos" });
+
+        // Validar si ya existe un admin
+        const exists = await User.findOne({ role: "admin" });
+        if (exists) {
+            return res.status(400).json({ message: "Ya existe un administrador" });
+        }
+
+        // Verificar si ya existe un usuario con ese email
+        const emailExists = await User.findOne({ email });
+        if (emailExists)
+            return res.status(409).json({ message: "El email ya está registrado" });
+
+        // Hash de contraseña
+        const hash = await bcrypt.hash(password, 10);
+
+        // Crear admin
+        const admin = await User.create({
+            name,
+            email,
+            password: hash,
+            role: "admin",
+            unidad: "",
+            telefono: "",
+            activo: true
+        });
+
+        res.json({
+            message: "Administrador creado correctamente",
+            admin: {
+                id: admin._id,
+                name: admin.name,
+                email: admin.email,
+                role: admin.role
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error del servidor", error: error.message });
+    }
+}
+
+
+// ---------------------------------------
 // REGISTRO - Solo el admin puede crear usuarios
+// ---------------------------------------
 export async function register(req, res){
     try{
         const { name, email, password, role, unidad, telefono } = req.body;
@@ -23,7 +76,7 @@ export async function register(req, res){
             name, 
             email, 
             password: hash,
-            role: role || 'usuario', // Por defecto 'usuario'
+            role: role || 'usuario',
             unidad: unidad || '',
             telefono: telefono || ''
         });
@@ -44,7 +97,10 @@ export async function register(req, res){
     }
 }
 
-// LOGIN - Valida credenciales y devuelve token con role
+
+// ---------------------------------------
+// LOGIN
+// ---------------------------------------
 export async function login(req, res) {
     try{
         const { email, password } = req.body;
@@ -55,7 +111,6 @@ export async function login(req, res) {
         const user = await User.findOne({email});
         if(!user) return res.status(401).json({message: 'Email o contraseña inválidos'});
 
-        // Verificar si el usuario está activo
         if(!user.activo)
             return res.status(403).json({message: 'Usuario desactivado. Contacte al administrador'});
 
@@ -84,7 +139,10 @@ export async function login(req, res) {
     }
 }
 
-// PROFILE - Obtener datos del usuario autenticado
+
+// ---------------------------------------
+// PROFILE
+// ---------------------------------------
 export async function profile(req, res) {
     try{
         const user = await User.findById(req.userId).select('-password');
@@ -96,7 +154,10 @@ export async function profile(req, res) {
     }
 }
 
+
+// ---------------------------------------
 // LISTAR USUARIOS - Solo admin
+// ---------------------------------------
 export async function getAllUsers(req, res) {
     try{
         const adminUser = await User.findById(req.userId);
@@ -110,7 +171,10 @@ export async function getAllUsers(req, res) {
     }
 }
 
-// ACTUALIZAR USUARIO - Admin puede actualizar cualquiera, usuario solo a sí mismo
+
+// ---------------------------------------
+// ACTUALIZAR USUARIO
+// ---------------------------------------
 export async function updateUser(req, res) {
     try{
         const { id } = req.params;
@@ -118,13 +182,11 @@ export async function updateUser(req, res) {
 
         const adminUser = await User.findById(req.userId);
         
-        // Si no es admin, solo puede actualizarse a sí mismo
         if(adminUser.role !== 'admin' && req.userId !== id)
             return res.status(403).json({message: 'No tienes permisos para actualizar este usuario'});
 
         const updateData = { name, email, telefono, unidad };
         
-        // Solo admin puede cambiar role y activo
         if(adminUser.role === 'admin') {
             if(role) updateData.role = role;
             if(typeof activo !== 'undefined') updateData.activo = activo;
@@ -144,7 +206,10 @@ export async function updateUser(req, res) {
     }
 }
 
-// ELIMINAR/DESACTIVAR USUARIO - Solo admin
+
+// ---------------------------------------
+// DESACTIVAR USUARIO
+// ---------------------------------------
 export async function deleteUser(req, res) {
     try{
         const { id } = req.params;
@@ -153,7 +218,6 @@ export async function deleteUser(req, res) {
         if(!adminUser || adminUser.role !== 'admin')
             return res.status(403).json({message: 'No tienes permisos para eliminar usuarios'});
 
-        // En lugar de eliminar, desactivamos
         const user = await User.findByIdAndUpdate(
             id,
             { activo: false },
@@ -167,4 +231,3 @@ export async function deleteUser(req, res) {
         res.status(500).json({message: 'Error del servidor'});
     }
 }
-

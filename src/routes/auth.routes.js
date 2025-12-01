@@ -1,11 +1,14 @@
 import { Router } from "express";
 import { register, login, profile, getAllUsers, updateUser, deleteUser } from "../controllers/auth.controller.js";
 import { auth, isAdmin } from "../middleware/auth.js";
+import { createFirstAdmin } from "../controllers/auth.controller.js"; //temporal
 
 
 
 const router = Router();
 
+//temporal
+router.post("/create-first-admin", createFirstAdmin);
 // Rutas públicas
 router.post("/login", login);
 
@@ -18,5 +21,6 @@ router.post("/register", auth, isAdmin, register); // Solo admin puede crear usu
 router.get("/users", auth, isAdmin, getAllUsers); // Solo admin puede ver todos los usuarios
 router.put("/users/:id", auth, updateUser); // Admin o el mismo usuario
 router.delete("/users/:id", auth, isAdmin, deleteUser); // Solo admin puede desactivar
+
 
 export default router;
