@@ -7,6 +7,7 @@ import anuncioRoutes from "./routes/anuncio.routes.js";
 import reservacionRoutes from "./routes/reservacion.routes.js";
 import pagoRoutes from "./routes/pago.routes.js";
 import visitanteRoutes from "./routes/visitante.routes.js";
+import mensajeRoutes from "./routes/mensaje.routes.js";
 import { connectToDB } from "./db/connect.js";
 
 const app = express();
@@ -34,5 +35,6 @@ app.use("/api/anuncios", anuncioRoutes);
 app.use("/api/reservaciones", reservacionRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/visitantes", visitanteRoutes);
+app.use("/api/mensajes", mensajeRoutes);
 
 export default app;
