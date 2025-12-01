@@ -12,25 +12,22 @@ import { connectToDB } from "./db/connect.js";
 
 const app = express();
 
-// 👉 Conectar solo una vez al iniciar
-connectToDB()
-  .then(() => console.log("MongoDB conectado"))
-  .catch(err => console.error("Error al conectar MongoDB", err));
+connectToDB().catch(err => console.error("Error Mongo:", err));
 
-// 👉 CORS correcto (solo una vez)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://todo-pwa-front-proyecto.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://todo-pwa-front-proyecto.vercel.app"
-  ],
+  origin: allowedOrigins,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 }));
 
 app.use(express.json());
 app.use(morgan("dev"));
 
-// Rutas
 app.get("/", (_req, res) => res.json({ ok: true, name: "condominios-api" }));
 
 app.use("/api/auth", authRoutes);
