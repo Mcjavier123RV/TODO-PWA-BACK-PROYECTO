@@ -8,6 +8,7 @@ import reservacionRoutes from "./routes/reservacion.routes.js";
 import pagoRoutes from "./routes/pago.routes.js";
 import visitanteRoutes from "./routes/visitante.routes.js";
 import mensajeRoutes from "./routes/mensaje.routes.js";
+import encuestaRoutes from "./routes/encuesta.routes.js";
 import { connectToDB } from "./db/connect.js";
 
 const app = express();
@@ -36,5 +37,6 @@ app.use("/api/reservaciones", reservacionRoutes);
 app.use("/api/pagos", pagoRoutes);
 app.use("/api/visitantes", visitanteRoutes);
 app.use("/api/mensajes", mensajeRoutes);
+app.use("/api/encuestas", encuestaRoutes);
 
 export default app;
